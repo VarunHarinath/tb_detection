@@ -9,7 +9,7 @@ export default function ExplanationCard({ explanation }) {
   const processedMarkdown = explanation
     .replace(/(\s+)?(\d+\.\s+\*\*)/g, '\n\n$2')
     .replace(/(\s+)?(\d+\.\s+[A-Za-z])/g, '\n\n$2')
-    .replace(/(\s+)?(\*\s+[A-Za-z])/g, '\n* ');
+    .replace(/(\s+)?(\*\s+[A-Za-z])/g, '\n$2');
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm flex flex-col h-full">

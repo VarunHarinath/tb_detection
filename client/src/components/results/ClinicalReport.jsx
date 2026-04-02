@@ -8,7 +8,7 @@ export default function ClinicalReport({ result, metadata }) {
     ? result.explanation
         .replace(/(\s+)?(\d+\.\s+\*\*)/g, '\n\n$2')
         .replace(/(\s+)?(\d+\.\s+[A-Za-z])/g, '\n\n$2')
-        .replace(/(\s+)?(\*\s+[A-Za-z])/g, '\n* ')
+        .replace(/(\s+)?(\*\s+[A-Za-z])/g, '\n$2')
     : '';
 
   return (
