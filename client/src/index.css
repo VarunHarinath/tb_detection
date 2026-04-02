@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-navy: #0f172a;
+  --color-primary-slate: #334155;
+  --color-accent-clinical: #0284c7;
+  --color-accent-teal: #0d9488;
+  --color-bg-base: #f1f5f9;
+  --color-bg-surface: #ffffff;
+  --color-border-soft: #e2e8f0;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-primary-navy);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
