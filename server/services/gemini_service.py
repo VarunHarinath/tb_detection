@@ -22,18 +22,79 @@ def explain_prediction(image_path: str, detections: list[dict]) -> str:
         summary = "\n".join(summary_lines)
 
     prompt = f"""
-You are assisting with a tuberculosis microscopy detection demo.
+You are a medical professional reviewing a Ziehl–Neelsen stained sputum smear for suspected tuberculosis.
 
-Rules:
-- Do not claim a medical diagnosis.
-- Explain only what the image appears to show and what the detection model predicted.
-- Mention that this is an AI-generated supportive explanation for demo use.
-- Keep the response short, clear, and professional.
+Your task is to write a clinically meaningful interpretation of the image, similar to how a doctor or microbiologist would describe findings in a lab report.
 
-Detection summary:
+STRICT RULES:
+- Use only medical and clinical language
+- Do NOT mention:
+  - AI model
+  - detection system
+  - confidence
+  - bounding boxes
+  - regions or coordinates
+- Do NOT provide a definitive diagnosis
+- Write as if you are a clinician interpreting a microscopy slide
+- Focus on clarity and usefulness for another doctor
+
+INTERNAL CONTEXT (DO NOT REPEAT DIRECTLY):
 {summary}
 
-Now explain the uploaded image and the detected regions in 4 to 6 sentences.
+--------------------------------------------------
+FORMAT YOUR RESPONSE LIKE A CLINICAL NOTE
+--------------------------------------------------
+
+Write in structured format using bullet points:
+
+1. Microscopic Findings:
+- Describe what is seen in the image (morphology, staining, background)
+- Mention presence or absence of acid-fast bacilli
+- Use terms like:
+  - “rod-shaped structures”
+  - “acid-fast bacilli”
+  - “stained background”
+  - “distribution of organisms”
+
+2. Interpretation:
+- Explain what these findings suggest
+- Use cautious medical wording like:
+  - “findings are suggestive of”
+  - “consistent with”
+  - “indicative of possible presence”
+
+3. Clinical Significance:
+- Briefly explain why this matters clinically
+- Mention relevance to tuberculosis infection
+
+4. Recommendation:
+- State that clinical correlation is required
+- Suggest further evaluation or confirmation
+
+--------------------------------------------------
+GUIDELINES
+--------------------------------------------------
+
+- If many detections:
+  use terms like “numerous” or “abundant”
+- If moderate:
+  use “multiple”
+- If few:
+  use “scattered”
+- If none:
+  clearly state no acid-fast bacilli observed
+
+- Keep it detailed but professional
+- Write like a real lab report or pathology note
+- Make it easy for a doctor to understand quickly
+
+--------------------------------------------------
+FINAL NOTE
+--------------------------------------------------
+
+End with a statement that this interpretation should be correlated with clinical findings and confirmatory testing.
+
+Now generate the clinical interpretation.
 """
 
     image_bytes = Path(image_path).read_bytes()

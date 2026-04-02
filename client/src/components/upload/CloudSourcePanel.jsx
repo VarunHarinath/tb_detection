@@ -20,7 +20,7 @@ export default function CloudSourcePanel({ onImageSelect }) {
   };
 
   return (
-    <div className="flex flex-col h-64 border rounded-xl bg-white border-slate-200 shadow-sm p-4">
+    <div className="flex flex-col h-auto min-h-[16rem] border rounded-xl bg-white border-slate-200 shadow-sm p-4 transition-all">
       {!selectedSource ? (
         <div className="flex flex-col h-full w-full">
           <div className="mb-4">

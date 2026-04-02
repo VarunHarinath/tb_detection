@@ -18,3 +18,36 @@
     letter-spacing: -0.01em;
   }
 }
+
+@media print {
+  @page {
+    size: letter;
+    margin: 1.2cm;
+  }
+  
+  html, body {
+    background-color: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Prevent elements like tables and signatures from tearing */
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+}

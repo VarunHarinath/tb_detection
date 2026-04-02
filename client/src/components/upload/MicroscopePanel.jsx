@@ -24,7 +24,7 @@ export default function MicroscopePanel({ onImageSelect }) {
   };
 
   return (
-    <div className="flex flex-col h-64 border rounded-xl bg-white border-slate-200 shadow-sm p-4 justify-center">
+    <div className="flex flex-col h-auto min-h-[16rem] py-4 border rounded-xl bg-white border-slate-200 shadow-sm px-4 justify-center transition-all">
       {status === 'disconnected' && (
         <div className="flex flex-col items-center">
           <Usb className="w-6 h-6 text-slate-300 mb-3" />
