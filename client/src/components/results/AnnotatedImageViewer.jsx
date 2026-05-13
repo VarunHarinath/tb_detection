@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ZoomIn, Scaling, Wand2, EyeOff, Download, RefreshCcw } from 'lucide-react';
+import { ZoomIn, Scaling, Wand2, EyeOff, Download, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
+export default function AnnotatedImageViewer({ originalUrls = [], annotatedUrls = [] }) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState("center center");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEnhanced, setIsEnhanced] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const resetAll = () => {
     setIsZoomed(false);
@@ -17,7 +18,7 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
   };
 
   const handleDownload = () => {
-    const targetUrl = (showOriginal || !annotatedUrl) ? originalUrl : formatBase64Url(annotatedUrl);
+    const targetUrl = (showOriginal || !annotatedUrls[currentIndex]) ? originalUrls[currentIndex] : formatBase64Url(annotatedUrls[currentIndex]);
     if (!targetUrl) return;
     const link = document.createElement("a");
     link.href = targetUrl;
@@ -27,12 +28,13 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
     document.body.removeChild(link);
   };
 
-  // Normalize base64 to ensure it contains the data uri prefix if lacking it
   const formatBase64Url = (b64) => {
     if (!b64) return null;
     return b64.startsWith('data:image') ? b64 : `data:image/jpeg;base64,${b64}`;
   };
 
+  const originalUrl = originalUrls[currentIndex] || null;
+  const annotatedUrl = annotatedUrls[currentIndex] || null;
   const currentImageUrl = (showOriginal || !annotatedUrl) ? originalUrl : formatBase64Url(annotatedUrl);
 
   const containerClasses = isFullscreen 
@@ -46,6 +48,28 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
         <div className="flex items-center space-x-3">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
           <h3 className="text-sm font-bold text-slate-800 tracking-wider uppercase">Viewport Feed</h3>
+          
+          {originalUrls.length > 1 && (
+            <div className="flex items-center space-x-2 ml-4 bg-white border border-slate-200 rounded-md p-1 shadow-sm">
+              <button 
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                disabled={currentIndex === 0}
+                className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 text-slate-600"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-bold text-slate-700 px-2 font-mono">
+                {currentIndex + 1} / {originalUrls.length}
+              </span>
+              <button 
+                onClick={() => setCurrentIndex(Math.min(originalUrls.length - 1, currentIndex + 1))}
+                disabled={currentIndex === originalUrls.length - 1}
+                className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 text-slate-600"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex space-x-2">
           {annotatedUrl && (
@@ -106,9 +130,7 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
         className={`relative flex-1 bg-slate-900 flex items-center justify-center overflow-hidden ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
         onClick={(e) => {
           if (!isZoomed) {
-            // Target specific coordinate
             const rect = e.target.getBoundingClientRect();
-            // Prevent crash if clicking outside the exact img bounds
             if (e.target.tagName !== 'IMG') return;
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -116,7 +138,6 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
             setIsZoomed(true);
           } else {
             setIsZoomed(false);
-            // Wait for transition before snapping origin back to avoid jump
             setTimeout(() => setZoomOrigin("center center"), 300);
           }
         }}
@@ -140,7 +161,7 @@ export default function AnnotatedImageViewer({ originalUrl, annotatedUrl }) {
           <span>FOV: 0.1mm</span>
         </div>
         <div>
-          <span>Z: 0.0</span>
+          <span>FRAME: {currentIndex + 1} / {Math.max(1, originalUrls.length)}</span>
         </div>
       </div>
     </div>

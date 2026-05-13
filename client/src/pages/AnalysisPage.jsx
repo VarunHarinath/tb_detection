@@ -10,33 +10,33 @@ import { api } from '../services/api';
 import { Printer } from 'lucide-react';
 
 export default function AnalysisPage({ metadata, onLogout }) {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleImageSelect = (fileData) => {
-    setSelectedImage(fileData);
+  const handleImageSelect = (fileDataArray) => {
+    setSelectedImages(fileDataArray || []);
     setAnalysisResult(null); 
     setError(null);
   };
 
   const handleRunAnalysis = async () => {
-    if (!selectedImage) return;
+    if (!selectedImages || selectedImages.length === 0) return;
     
     setIsAnalyzing(true);
     setError(null);
     
     try {
-      const result = await api.predictAnalysis(selectedImage);
+      const result = await api.predictAnalysis(selectedImages);
       // Append runtime logic like source injection to keep components happy
       const enhancedResult = {
         ...result,
-        imageUrl: selectedImage.previewUrl,
+        imageUrls: selectedImages.map(img => img.previewUrl),
         metadata: {
            processingTime: "840ms",
            modelVersion: "Clinical-Build-v4.2.1",
-           source: selectedImage.source === 'file' ? 'Local Archive' : selectedImage.source === 'cloud' ? 'PACS Relay' : 'Optical Direct'
+           source: selectedImages[0].source === 'file' ? 'Local Archive' : selectedImages[0].source === 'cloud' ? 'PACS Relay' : 'Optical Direct'
         }
       };
       setAnalysisResult(enhancedResult);
@@ -75,7 +75,8 @@ export default function AnalysisPage({ metadata, onLogout }) {
               <UploadSourceTabs onImageSelect={handleImageSelect} />
               <div className="mt-5 pt-5 border-t border-slate-100">
                 <AnalysisControls 
-                  selectedImage={selectedImage}
+                  selectedImage={selectedImages.length > 0 ? selectedImages[0] : null}
+                  selectedImages={selectedImages}
                   isAnalyzing={isAnalyzing}
                   onRunAnalysis={handleRunAnalysis}
                   error={error}
@@ -104,12 +105,12 @@ export default function AnalysisPage({ metadata, onLogout }) {
               <div className="flex flex-col gap-6 h-full">
                 <div className="min-h-[350px] lg:h-1/2 flex-shrink-0">
                   <AnnotatedImageViewer 
-                    originalUrl={selectedImage.previewUrl} 
-                    annotatedUrl={analysisResult.annotated_image} 
+                    originalUrls={selectedImages.map(img => img.previewUrl)} 
+                    annotatedUrls={analysisResult.annotated_images} 
                   />
                 </div>
                 <div className="min-h-[300px] lg:h-1/2 flex-1 relative">
-                  <ExplanationCard explanation={analysisResult.explanation} />
+                  <ExplanationCard summary={analysisResult.summary} totalDetections={analysisResult.total_detections} rawDetections={analysisResult.raw_detections} />
                 </div>
               </div>
             )}

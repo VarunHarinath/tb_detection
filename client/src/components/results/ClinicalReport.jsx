@@ -4,12 +4,21 @@ import ReactMarkdown from 'react-markdown';
 export default function ClinicalReport({ result, metadata }) {
   if (!result) return null;
 
-  const processedMarkdown = result.explanation
-    ? result.explanation
+  const processedMarkdown = result.summary
+    ? result.summary
         .replace(/(\s+)?(\d+\.\s+\*\*)/g, '\n\n$2')
         .replace(/(\s+)?(\d+\.\s+[A-Za-z])/g, '\n\n$2')
         .replace(/(\s+)?(\*\s+[A-Za-z])/g, '\n$2')
     : '';
+
+  let severity = "Negative";
+  if (result.total_detections >= 100) {
+    severity = "2+ / 3+ (Severe)";
+  } else if (result.total_detections >= 10) {
+    severity = "1+ (Moderate)";
+  } else if (result.total_detections >= 1) {
+    severity = "Scanty (Mild)";
+  }
 
   return (
     <div className="w-full bg-white text-black font-sans box-border">
@@ -68,7 +77,10 @@ export default function ClinicalReport({ result, metadata }) {
 
       {/* AI Explanation */}
       <div className="mb-8 print-avoid-break">
-        <h3 className="text-base font-bold uppercase border-b border-black pb-1 mb-4">Review</h3>
+        <div className="flex justify-between items-baseline border-b border-black pb-1 mb-4">
+          <h3 className="text-base font-bold uppercase">Clinical Review & Severity</h3>
+          <span className="font-bold text-sm uppercase">Severity: {severity} ({result.total_detections || 0} Detections)</span>
+        </div>
         <div className="text-sm leading-relaxed mb-4 border-l-2 border-black pl-4 py-1 space-y-2">
           <ReactMarkdown
             components={{

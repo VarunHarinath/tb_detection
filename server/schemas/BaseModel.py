@@ -13,6 +13,12 @@ class ErrorRoute(BaseModel):
     message: str
 
 
+from typing import List, Optional
+
 class PredictResponse(BaseModel):
-    explanation: str
-    annotated_image: str
+    summary: str
+    annotated_images: list
+    total_detections: int
+    raw_detections: list
+    cluster_count: Optional[int] = 0
+    cluster_details: Optional[List[dict]] = []

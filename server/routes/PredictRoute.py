@@ -5,5 +5,5 @@ from schemas.BaseModel import PredictResponse
 router = APIRouter()
 
 @router.post("/predict", response_model=PredictResponse)
-async def predict(file: UploadFile = File(...)):
-    return await predict_controller(file)
+async def predict(files: list[UploadFile] = File(...)):
+    return await predict_controller(files)

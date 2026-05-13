@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 
 export default function Header({ metadata, onLogout }) {
   const [isOnline, setIsOnline] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -14,7 +15,7 @@ export default function Header({ metadata, onLogout }) {
       }
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 15000); // Check every 15 seconds
+    const interval = setInterval(checkStatus, 3000); // Check every 3 seconds
     return () => {
       mounted = false;
       clearInterval(interval);
@@ -56,9 +57,41 @@ export default function Header({ metadata, onLogout }) {
             </span>
           </div>
           
-          <button className="text-slate-400 hover:text-slate-600 transition-colors p-1" aria-label="System Info">
-            <Info className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowInfo(!showInfo)}
+              className={`transition-colors p-1 rounded ${showInfo ? 'text-slate-800 bg-slate-100' : 'text-slate-400 hover:text-slate-600'}`} 
+              aria-label="System Info"
+            >
+              <Info className="w-5 h-5" />
+            </button>
+
+            {showInfo && (
+              <div className="absolute right-0 mt-3 w-64 bg-white rounded-md shadow-lg border border-slate-200 z-[100] p-4 flex flex-col space-y-3">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">System Diagnostics</h4>
+                <div className="flex flex-col space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-semibold uppercase tracking-wide">Backend URI:</span>
+                    <span className="font-mono text-slate-800">127.0.0.1:8000</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-semibold uppercase tracking-wide">Inference:</span>
+                    <span className="font-mono text-slate-800">/predict</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-semibold uppercase tracking-wide">Polling Rate:</span>
+                    <span className="font-mono text-slate-800">3s</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 font-semibold uppercase tracking-wide">Connection:</span>
+                    <span className={`font-mono font-bold ${isOnline ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isOnline ? 'ESTABLISHED' : 'DISCONNECTED'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {onLogout && (
             <button 

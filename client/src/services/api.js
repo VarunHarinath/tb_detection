@@ -10,13 +10,17 @@ export const api = {
     }
   },
   
-  predictAnalysis: async (fileData) => {
-    if (!fileData || !fileData.file) {
+  predictAnalysis: async (fileDataArray) => {
+    if (!fileDataArray || fileDataArray.length === 0) {
       throw new Error("System disconnected");
     }
     
     const formData = new FormData();
-    formData.append("file", fileData.file);
+    fileDataArray.forEach(fileData => {
+      if (fileData.file) {
+        formData.append("files", fileData.file);
+      }
+    });
 
     try {
       const response = await fetch("http://127.0.0.1:8000/predict", {
@@ -32,8 +36,10 @@ export const api = {
       
       // Strict contract mapping
       return {
-        explanation: data.explanation || data.summary,
-        annotated_image: data.annotated_image,
+        summary: data.summary,
+        annotated_images: data.annotated_images || [],
+        total_detections: data.total_detections,
+        raw_detections: data.raw_detections || [],
       };
     } catch (e) {
       console.error(e);
