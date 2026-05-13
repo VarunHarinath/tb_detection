@@ -53,6 +53,7 @@ async def predict_controller(files: list[UploadFile]) -> PredictResponse:
             raw_detections = result["detections"]
             annotated_path = result["annotated_path"]
 
+            total_yolo_boxes = len(raw_detections)
             file_enhanced_count = sum(d.get("count", 1) for d in raw_detections)
             total_enhanced_count += file_enhanced_count
             
@@ -61,8 +62,9 @@ async def predict_controller(files: list[UploadFile]) -> PredictResponse:
                 d["source_file"] = file.filename
                 all_raw_detections.append(d)
 
+            file_clusters_refined = sum(1 for d in raw_detections if d.get("count", 1) > 1)
             confidences = [d["confidence"] for d in raw_detections]
-            log_benchmark(file.filename, file_enhanced_count, confidences, processing_time_ms)
+            log_benchmark(file.filename, total_yolo_boxes, file_enhanced_count, file_clusters_refined, confidences, processing_time_ms)
 
             if annotated_path:
                 with open(annotated_path, "rb") as image_file:
@@ -71,13 +73,21 @@ async def predict_controller(files: list[UploadFile]) -> PredictResponse:
 
         # Extract cluster details
         cluster_details = []
+        uncertain_cluster_count = 0
+        
         for d in all_raw_detections:
-            if d.get("count", 1) > 1:
+            is_uncertain = d.get("uncertain", False)
+            if is_uncertain:
+                uncertain_cluster_count += 1
+                
+            if d.get("count", 1) > 1 or is_uncertain:
                 cluster_details.append({
+                    "roi_id": d.get("roi_id", "Unknown"),
                     "box": d.get("bbox", []),
                     "estimated_bacilli_count": d.get("count", 1),
                     "source_file": d.get("source_file", ""),
-                    "segmentation_method": d.get("segmentation_method", "Unknown")
+                    "segmentation_method": d.get("segmentation_method", "Unknown"),
+                    "uncertain": is_uncertain
                 })
         
         cluster_count = len(cluster_details)
@@ -88,9 +98,11 @@ async def predict_controller(files: list[UploadFile]) -> PredictResponse:
         return PredictResponse(
             summary=summary,
             annotated_images=annotated_images_base64,
-            total_detections=total_enhanced_count,
+            total_detections=len(all_raw_detections),
+            estimated_bacilli_count=total_enhanced_count,
             raw_detections=all_raw_detections,
             cluster_count=cluster_count,
+            uncertain_cluster_count=uncertain_cluster_count,
             cluster_details=cluster_details
         )
 

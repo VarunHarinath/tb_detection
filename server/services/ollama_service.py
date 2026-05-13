@@ -10,12 +10,14 @@ OLLAMA_API_URL = "http://localhost:11434/api/generate"
 def explain_prediction(image_path: str, detections: list[dict]) -> str:
     total_bacilli = sum(d.get("count", 1) for d in detections)
     cluster_count = sum(1 for d in detections if d.get("count", 1) > 1)
+    uncertain_cluster_count = sum(1 for d in detections if d.get("uncertain", False))
     
     if total_bacilli == 0:
         internal_context = "No acid-fast bacilli observed."
     else:
         internal_context = f"Total estimated acid-fast bacilli count: {total_bacilli}.\n"
-        internal_context += f"Number of dense clusters observed: {cluster_count}."
+        internal_context += f"Number of dense clusters observed: {cluster_count}.\n"
+        internal_context += f"Number of clusters flagged as uncertain: {uncertain_cluster_count}."
 
     prompt = f"""
 You are a medical professional reviewing a Ziehl–Neelsen stained sputum smear for suspected tuberculosis.
@@ -90,6 +92,7 @@ FINAL NOTE
 --------------------------------------------------
 
 End with a statement that this interpretation should be correlated with clinical findings and confirmatory testing.
+You MUST also explicitly state: "This system provides an estimated automated count and must be reviewed by a qualified professional, especially for dense or uncertain clusters."
 
 Now generate the clinical interpretation based strictly on the INTERNAL CONTEXT provided. Do not invent details.
 """

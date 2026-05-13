@@ -17,13 +17,13 @@ export default function ExplanationCard({ summary, totalDetections, rawDetection
   let severityColor = "bg-green-100 text-green-800 border-green-200";
 
   if (totalDetections >= 100) {
-    severity = "2+ / 3+ (Severe)";
+    severity = "3+ (Severe)";
     severityColor = "bg-red-100 text-red-800 border-red-200";
   } else if (totalDetections >= 10) {
-    severity = "1+ (Moderate)";
+    severity = "2+ (Moderate)";
     severityColor = "bg-orange-100 text-orange-800 border-orange-200";
   } else if (totalDetections >= 1) {
-    severity = "Scanty (Mild)";
+    severity = "1+ / Scanty (Mild)";
     severityColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
   }
 
@@ -39,10 +39,10 @@ export default function ExplanationCard({ summary, totalDetections, rawDetection
       <div className={`mb-6 p-4 rounded-lg border ${severityColor} flex flex-col items-center justify-center text-center`}>
         <div className="flex items-center space-x-2 mb-1">
           <AlertCircle className="w-5 h-5" />
-          <span className="text-lg font-bold uppercase tracking-wide">{severity}</span>
+          <span className="text-lg font-bold uppercase tracking-wide">WHO GRADE: {severity}</span>
         </div>
         <p className="text-xs font-semibold opacity-80 uppercase tracking-widest mt-1">
-          DEV REFERENCE: {totalDetections} BACILLI DETECTED
+          ESTIMATED BACILLARY LOAD: {totalDetections} AFB
         </p>
       </div>
       
@@ -71,24 +71,41 @@ export default function ExplanationCard({ summary, totalDetections, rawDetection
           {showMetrics && (
             <div className="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm font-mono">
               <h4 className="font-bold uppercase tracking-widest text-slate-700 mb-3 border-b border-slate-200 pb-2">Clustered ROI Breakdown</h4>
-              {rawDetections.filter(d => d.count > 1).length === 0 ? (
-                <p className="text-slate-500 italic">No clusters required ML segmentation.</p>
+              {(!rawDetections || rawDetections.length === 0) ? (
+                <p className="text-slate-500 italic">No bacilli detected.</p>
               ) : (
-                <ul className="space-y-2">
-                  {rawDetections.filter(d => d.count > 1).map((d, idx) => (
-                    <li key={idx} className="flex flex-col bg-white p-2 border border-slate-200 rounded">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-slate-600">Box Coordinates: [{d.bbox.map(n => Math.round(n)).join(', ')}]</span>
-                        <span className="font-bold text-accent-clinical bg-blue-50 px-2 py-1 rounded">Extracted Bacilli: {d.count}</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase flex justify-between">
-                        <span>Method Used:</span>
-                        <span className={`${d.segmentation_method === 'Paper-Based Sauvola' ? 'text-emerald-500' : 'text-orange-400'}`}>
-                          {d.segmentation_method || 'Unknown'}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
+                <ul className="space-y-3">
+                  {rawDetections.map((d, idx) => {
+                    const isCluster = d.count > 1;
+                    const isUncertain = d.uncertain;
+                    
+                    return (
+                      <li key={idx} className={`flex flex-col p-3 border rounded ${isUncertain ? 'bg-red-50 border-red-200' : isCluster ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'}`}>
+                        <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
+                          <span className="font-bold text-slate-800">{d.roi_id || `ROI-${idx + 1}`}</span>
+                          <span className="font-bold text-accent-clinical bg-blue-50 px-2 py-1 rounded">Estimated AFB Count: {d.count}</span>
+                        </div>
+                        <div className="text-xs text-slate-600 font-medium space-y-1">
+                          <div className="flex justify-between">
+                            <span>Cluster Refined:</span>
+                            <span className={isCluster ? 'font-bold text-orange-600' : ''}>{isCluster ? 'Yes' : 'No'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Status:</span>
+                            <span className={isUncertain ? 'font-bold text-red-600' : 'text-emerald-600'}>
+                              {isUncertain ? 'Review Recommended' : 'Stable'}
+                            </span>
+                          </div>
+                          {isCluster && (
+                            <div className="flex justify-between">
+                              <span>Method:</span>
+                              <span className="text-slate-500">{d.segmentation_method || 'Unknown'}</span>
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
